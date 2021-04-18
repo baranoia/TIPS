@@ -1,0 +1,43 @@
+cd C:\MyProgram\OracleDB18XE\おためし
+
+sqlplus sys/password@XE as sysdba
+
+https://note.z0i.net/2019/10/oracle-xe-table.html
+
+SQL> alter session set container = XEPDB1;
+###スペース作成
+CREATE TABLESPACE TESTSPACE
+DATAFILE 'C:\Users\User\Oracle\18XE\TEST.dbf' SIZE 100M
+SEGMENT SPACE MANAGEMENT AUTO;
+
+
+
+セッションが変更されました。
+
+###ユーザー作成
+CREATE USER orauser identified by password
+
+###権限付与
+grant connect to orauser;
+grant resource to orauser;
+alter user orauser quota unlimited on USERS;
+
+
+
+
+sqlplus orauser/password@//localhost:1521/XEPDB1
+
+create table tbw_hoge
+(cust_no number(4),
+cust_name varchar2(40),
+memo clob);
+
+insert into tbw_hoge values (0, 'Wada', null);
+
+commit;
+
+select * from tbw_hoge;
+exit
+
+
+sqlldr parfile=./db.properties control=./tbw_hoge.ctl data=./tbw_hoge.dat log=./tbw_hoge.log bad=./tbw_hoge.bad
