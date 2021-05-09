@@ -1,0 +1,57 @@
+◆
+ctlファイルって
+VARCHAR項目もCHARとして書くけど
+それでロードしたらどうなるのか
+全部埋まっちゃうのか？
+
+sqlplus orauser/password@//localhost:1521/XEPDB1
+
+create table tbw_hoge2
+(cust_no number(4),
+cust_name varchar2(40));
+
+-- 本題の前にバイト数の確認
+insert into tbw_hoge2 values (0, 'kore ha hannkaku40keta          kokomade');
+
+×-- ２バイト文字３バイトとして扱うのでこれは60バイトで入らない
+×insert into tbw_hoge2 values (1, 'これは全角２０桁　　　　　　　　ここまで');
+
+insert into tbw_hoge2 values (1, 'これは全角２０桁　 ここまで');
+
+insert into tbw_hoge2 values (2, 'ooie manabu');
+
+insert into tbw_hoge2 values (3, '  SPACE ARUYO      ');
+
+
+commit;
+
+sqlDeveloperでctlを作った
+修正してこんな感じ
+--  LOAD DATA 
+--  APPEND
+--  INTO TABLE TBW_HOGE2
+--  FIELDS TERMINATED BY','
+--  OPTIONALLY ENCLOSED BY '"' AND '"'
+--  TRAILING NULLCOLS ( 
+--  "CUST_NO" DECIMAL EXTERNAL,
+--  "CUST_NAME" CHAR (40))
+
+datも作った
+101,"Utiyama"
+102,"OOyama"
+103,"   SPACEari   "
+
+これでロードしてみる
+cd C:\MyProgram\OracleDB18XE\おためし\20210509_VARCHARはどうなる
+sqlldr parfile=./db.properties control=./TBW_HOGE2.ctl data=./TBW_HOGE2.dat log=./TBW_HOGE2.log bad=./TBW_HOGE2.bad
+
+ロード成功したのでデータを見てみる
+
+CUST_NO	CUST_NAME
+0	kore ha hannkaku40keta          kokomade
+1	これは全角２０桁　 ここまで
+3	  SPACE ARUYO      
+101	Utiyama
+102	OOyama
+103	   SPACEari   
+CHARでも大丈夫だったよかったよかった
